@@ -3,6 +3,7 @@ from django.contrib import admin
 from users.models import CustomUser
 
 
+@admin.register(CustomUser)
 class UserAdmin(admin.ModelAdmin):
     model = CustomUser
     list_display = (
@@ -11,7 +12,4 @@ class UserAdmin(admin.ModelAdmin):
         'last_name',
         'email'
     )
-
-
-admin.site.register(CustomUser, UserAdmin)
 

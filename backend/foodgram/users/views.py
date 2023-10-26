@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
-from rest_framework import viewsets
 
 from api.pagination import CustomPagination
 from users.serializers import CustomUserSerializer
@@ -14,6 +13,7 @@ class UsersViewSet(UserViewSet):
     pagination_class = CustomPagination
 
 
-class SubscriptionsViewSet(viewsets.ModelViewSet):
-    pass
+
+
+
 
