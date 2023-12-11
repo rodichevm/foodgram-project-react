@@ -3,27 +3,21 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly, IsAuthenticated)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorPermission
-from api.serializers import (
-    TagSerializer,
-    IngredientSerializer,
-    SubscribesSerializer,
-    CreateRecipeSerializer,
-    ReadRecipeSerializer,
-    ShoppingCartSerializer,
-    FavoriteSerializer,
-    CustomUserSerializer,
-)
-from recipes.models import (
-    Tag, Ingredient, Recipe, IngredientInRecipe, ShoppingCart, Favorite)
+from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
+                             FavoriteSerializer, IngredientSerializer,
+                             ReadRecipeSerializer, ShoppingCartSerializer,
+                             SubscribesSerializer, TagSerializer)
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Tag)
 from users.models import CustomUser, Follow
 
 
