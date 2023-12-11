@@ -83,7 +83,18 @@
       steps:
         - name: Checkout repo
           uses: actions/checkout@v3
-        - name: executing remote ssh commands to deploy
+
+        - name: Copy docker-compose.yml via ssh
+          uses: appleboy/scp-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USER }}
+            key: ${{ secrets.SSH_KEY }}
+            passphrase: ${{ secrets.SSH_PASSPHRASE }}
+            source: "docker-compose.yml"
+            target: "foodgram"
+
+        - name: Executing remote ssh commands to deploy
           uses: appleboy/ssh-action@master
           with:
             host: ${{ secrets.HOST }}
@@ -91,9 +102,9 @@
             key: ${{ secrets.SSH_KEY }}
             passphrase: ${{ secrets.PASSPHRASE }}
             script: |
-              sudo docker pull {{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
-              sudo docker-compose stop
-              sudo docker-compose rm -f backend
+              cd foodgram
+              sudo docker compose -f docker-compose.yml pull
+              sudo docker compose -f docker-compose.yml down
               rm .env
               touch .env
               echo TOKEN=${{ secrets.TOKEN }} >> .env
@@ -103,6 +114,8 @@
               echo DB_HOST=${{ secrets.DB_HOST }} >> .env
               echo DB_PORT=${{ secrets.DB_PORT }} >> .env
               sudo docker-compose up -d --build
+              sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
+              sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic
 
     send_message:
       runs-on: ubuntu-latest
