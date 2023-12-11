@@ -19,22 +19,23 @@ from api.serializers import (
     CreateRecipeSerializer,
     ReadRecipeSerializer,
     ShoppingCartSerializer,
-    FavoriteSerializer, UserSerializer
+    FavoriteSerializer,
+    CustomUserSerializer,
 )
 from recipes.models import (
     Tag, Ingredient, Recipe, IngredientInRecipe, ShoppingCart, Favorite)
 from users.models import CustomUser, Follow
 
 
-class UsersViewSet(UserViewSet):
+class UserViewSet(UserViewSet):
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
 
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=IsAuthenticated
+        permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
         user = request.user
@@ -42,25 +43,22 @@ class UsersViewSet(UserViewSet):
 
         if request.method == 'POST':
             serializer = SubscribesSerializer(
-                author,
-                data=request.data,
-                context={'request': request}
+                author, data=request.data, context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            get_object_or_404(Follow, user=user, author=author).delete()
+            get_object_or_404(
+                Follow, user=user, author=author
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(
-        detail=False,
-        permission_classes=IsAuthenticated
-    )
+    @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
-        queryset = Follow.objects.filter(following__user=user)
+        queryset = CustomUser.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)
         serializer = SubscribesSerializer(
             pages, many=True, context={'request': request}
@@ -69,17 +67,19 @@ class UsersViewSet(UserViewSet):
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    serializer_class = TagSerializer
     queryset = Tag.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_class = TagSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, )
-    filter_backends = (IngredientFilter, )
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -92,7 +92,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            ReadRecipeSerializer
+            return ReadRecipeSerializer
         return CreateRecipeSerializer
 
     @staticmethod
@@ -109,10 +109,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{file}.txt"'
         return response
 
-    @action(
-        methods='GET',
-        detail=False
-    )
+    @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_list__user=request.user
@@ -122,59 +119,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.send_message(ingredients)
 
     @action(
-        methods='POST',
         detail=True,
-        permission_classes=IsAuthenticated
-    )
+        methods=('POST',),
+        permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk):
+        context = {'request': request}
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': request.user.id,
             'recipe': recipe.id
         }
-        serializer = ShoppingCartSerializer(
-            data=data,
-            context={'request': request}
-        )
+        serializer = ShoppingCartSerializer(data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @shopping_cart.mapping.delete
     def destroy_shopping_cart(self, request, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
         get_object_or_404(
             ShoppingCart,
-            user=request.user,
-            recipe=recipe
+            user=request.user.id,
+            recipe=get_object_or_404(Recipe, id=pk)
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-        methods='POST',
         detail=True,
-        permission_classes=IsAuthenticated
-    )
+        methods=('POST',),
+        permission_classes=[IsAuthenticated])
     def favorite(self, request, pk):
+        context = {"request": request}
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': request.user.id,
             'recipe': recipe.id
         }
-        serializer = FavoriteSerializer(
-            data=data,
-            context={'request': request}
-        )
+        serializer = FavoriteSerializer(data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @favorite.mapping.delete
     def destroy_favorite(self, request, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
         get_object_or_404(
             Favorite,
             user=request.user,
-            recipe=recipe
+            recipe=get_object_or_404(Recipe, id=pk)
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -9,9 +9,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
 DEBUG = os.getenv('DEBUG', default=False)
-
+# DEBUG = True
 AUTH_USER_MODEL = 'users.CustomUser'
-
 ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS', default='*')]
 
 INSTALLED_APPS = [
@@ -29,7 +28,6 @@ INSTALLED_APPS = [
     'colorfield',
     'django_filters',
     'djoser',
-    # 'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -120,9 +118,6 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
-    # "DEFAULT_PAGINATION_CLASS":
-        # "rest_framework.pagination.LimitOffsetPagination",
-    # "PAGE_SIZE": 50,
 }
 
 DJOSER = {

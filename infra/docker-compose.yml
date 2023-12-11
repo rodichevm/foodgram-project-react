@@ -1,36 +1,43 @@
-version: '3'
+version: '3.8'
+
+volumes:
+  postgres_data:
+  static_value:
+  media_value:
 
 services:
 
   db:
-    image: postgres:13.0-alpine
+    container_name: db_postrgre
+    image: postgres:13.10
+    env_file: .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env
+      - postgres_data:/var/lib/postgresql/data
 
   backend:
+    container_name: backend_prod
+#    build: ../backend/foodgram
     image: rodichevm/foodgram_backend
+    env_file: .env
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
       - db
-    env_file:
-      - .env
     restart: always
-    container_name: foodgram_backend
-
 
   frontend:
+    container_name: frontend_prod
     image: rodichevm/foodgram_frontend
+#    build: ../frontend
+    env_file: .env
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
       - db
-    container_name: foodgram_frontend
 
   nginx:
+    container_name: nginx_prod
     image: nginx:1.19.3
     ports:
       - "80:80"
@@ -42,9 +49,3 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - backend
-    container_name: foodgram_nginx
-
-volumes:
-  postgres_data:
-  static_value:
-  media_value:
