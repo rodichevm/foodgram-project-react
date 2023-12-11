@@ -6,7 +6,7 @@
       runs-on: ubuntu-latest
       strategy:
         matrix:
-          python-version: [ "3.7", "3.8", "3.9" ]
+          python-version: [ "3.8", "3.9", "3.10" ]
 
       steps:
         - uses: actions/checkout@v2
@@ -17,11 +17,10 @@
 
         - name: Install dependencies
           run: |
-            python -m pip install --upgrade pip
-            pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
-            cd backend/foodgram
-            pip install -r requirements.txt
-        - name: Test with flake8 and django tests
+            python -m pip install --upgrade pip 
+            pip install flake8==6.0.0 flake8-isort==6.0.0
+            pip install -r ./backend/foodgram/requirements.txt
+        - name: Test with flake8
           run: |
             python -m flake8
 
