@@ -16,7 +16,6 @@ services:
 
   backend:
     container_name: backend_prod
-#    build: ../backend/foodgram
     image: rodichevm/foodgram_backend
     env_file: .env
     volumes:
@@ -29,7 +28,6 @@ services:
   frontend:
     container_name: frontend_prod
     image: rodichevm/foodgram_frontend
-#    build: ../frontend
     env_file: .env
     volumes:
       - ../frontend/:/app/result_build/
