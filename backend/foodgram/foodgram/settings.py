@@ -9,7 +9,7 @@ SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
 DEBUG = os.getenv('DEBUG', default=False)
 AUTH_USER_MODEL = 'users.CustomUser'
-ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS', default='*')]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1 foodgramers.ddns.net').split()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
