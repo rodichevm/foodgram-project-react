@@ -16,4 +16,3 @@ class UserAdmin(admin.ModelAdmin):
     ist_filter = ('first_name', 'last_name')
     ordering = ('username',)
     empty_value_display = '-пусто-'
-

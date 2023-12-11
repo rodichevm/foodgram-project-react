@@ -273,4 +273,3 @@ class FavoriteSerializer(serializers.ModelSerializer):
             instance.recipe,
             context={'request': self.context.get('request')}
         ).data
-    

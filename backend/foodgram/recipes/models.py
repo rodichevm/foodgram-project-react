@@ -181,8 +181,3 @@ class ShoppingCart(FavoriteShoppingCart):
         default_related_name = 'shopping_list'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
-
-
-
-
-
