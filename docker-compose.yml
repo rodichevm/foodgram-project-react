@@ -18,8 +18,8 @@ services:
     container_name: backend_foodgram
     build: ./backend/foodgram/
     volumes:
-      - static:/backend_static
-      - media:/media
+      - static_value:/backend_static
+      - media_value:/media/
     env_file: .env
     depends_on:
       - db
@@ -29,7 +29,7 @@ services:
     build: ./frontend/
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static:/frontend_static
+      - static_value:/frontend_static
     env_file: .env
     depends_on:
       - backend
@@ -38,8 +38,8 @@ services:
     container_name: gateway_foodgram
     build: ./infra/
     volumes:
-      - static:/staticfiles/
-      - media:/media
+      - static_value:/staticfiles/
+      - media_value:/media/
     env_file: .env
     ports:
       - "8080:80"
