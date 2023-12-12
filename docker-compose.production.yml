@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    container_name: backend_prod
+    container_name: backend_foodgram
     image: rodichevm/foodgram_backend
     env_file: .env
     volumes:
@@ -26,7 +26,7 @@ services:
     restart: always
 
   frontend:
-    container_name: frontend_prod
+    container_name: frontend_foodgram
     image: rodichevm/foodgram_frontend
     env_file: .env
     volumes:
@@ -35,7 +35,7 @@ services:
       - db
 
   nginx:
-    container_name: nginx_prod
+    container_name: nginx_foodgram
     image: nginx:1.19.3
     ports:
       - "80:80"
