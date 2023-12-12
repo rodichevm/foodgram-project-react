@@ -4,7 +4,6 @@ volumes:
   postgres_data:
   static_value:
   media_value:
-  redoc:
 
 services:
 
@@ -30,10 +29,9 @@ services:
     container_name: frontend_foodgram
     image: rodichevm/foodgram_frontend
     env_file: .env
+    command: cp -r /app/build/. /app/static/
     volumes:
-      - ../frontend/:/app/result_build/
-    depends_on:
-      - db
+      - static_value:/app/static/
 
   nginx:
     container_name: nginx_foodgram
@@ -45,6 +43,6 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
-      - redoc:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
+      - frontend
