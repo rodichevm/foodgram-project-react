@@ -16,31 +16,32 @@ services:
 
   backend:
     container_name: backend_foodgram
-    image: rodichevm/foodgram_backend
+    build: ./backend/foodgram/
     volumes:
-      - static_value:/backend_static
-      - media_value:/media
+      - static:/backend_static
+      - media:/media
+    env_file: .env
     depends_on:
       - db
-    env_file: .env
 
   frontend:
     container_name: frontend_foodgram
-    image: rodichevm/foodgram_frontend
+    build: ./frontend/
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static_value:/frontend_static
+      - static:/frontend_static
     env_file: .env
     depends_on:
       - backend
 
   gateway:
     container_name: gateway_foodgram
-    image: rodichevm/foodgram_gateway
-    ports:
-      - "7000:80"
+    build: ./infra/
     volumes:
-      - static_value:/staticfiles/
-      - media_value:/media
+      - static:/staticfiles/
+      - media:/media
+    env_file: .env
+    ports:
+      - "8080:80"
     depends_on:
       - frontend
