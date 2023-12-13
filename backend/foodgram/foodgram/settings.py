@@ -38,7 +38,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://foodgramers.ddns.net', 'https://www.foodgramers.ddns.net']
+    'https://foodgramers.ddns.net',
+    'https://www.foodgramers.ddns.net',
+    '51.250.16.195'
+]
 
 ROOT_URLCONF = 'foodgram.urls'
 
