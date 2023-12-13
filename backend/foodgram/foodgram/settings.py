@@ -10,7 +10,8 @@ SECRET_KEY = os.getenv('TOKEN', 'default-value')
 DEBUG = os.getenv('DEBUG', default=False)
 # DEBUG = True
 AUTH_USER_MODEL = 'users.CustomUser'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1 foodgramers.ddns.net localhost').split()
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
+                          '127.0.0.1 foodgramers.ddns.net localhost').split()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -104,7 +105,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = os.path.join(BASE_DIR,'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/media/'
