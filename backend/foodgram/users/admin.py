@@ -4,7 +4,7 @@ from users.models import CustomUser
 
 
 @admin.register(CustomUser)
-class UserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
     model = CustomUser
     list_display = (
         'id',
@@ -13,6 +13,6 @@ class UserAdmin(admin.ModelAdmin):
         'email'
     )
     search_fields = ('username', 'email')
-    ist_filter = ('first_name', 'last_name')
+    list_filter = ('first_name', 'email')
     ordering = ('username',)
     empty_value_display = '-пусто-'
