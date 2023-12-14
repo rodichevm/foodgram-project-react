@@ -8,22 +8,22 @@
 
 **Ссылка на проект http://foodgramers.ddns.net**
 
-**Ссылка на проект http://foodgramers.ddns.net/admin**
+**Ссылка на админ-зону проекта http://foodgramers.ddns.net/admin**
 
-### _Развернуть проект на удаленном сервере:_
+### Развернуть проект на удаленном сервере:
 
-**_Склонировать репозиторий_**
+**Склонировать репозиторий**
 ```
 git@github.com:rodichevm/foodgram-project-react.git
 ```
-**_Установить на сервере Docker, Docker Compose:_**
+**Установить на сервере Docker, Docker Compose:**
 ```
 sudo apt install curl                                   - установка утилиты для скачивания файлов
 curl -fsSL https://get.docker.com -o get-docker.sh      - скачать скрипт для установки
 sh get-docker.sh                                        - запуск скрипта
 sudo apt-get install docker-compose-plugin              - последняя версия docker compose
 ```
-**_Скопировать на сервер файлы docker-compose.production.yml, nginx.conf из папки infra (команды выполнять находясь в папке infra):_**
+**Скопировать на сервер файлы docker-compose.production.yml, nginx.conf:**
 ```
 scp docker-compose.production.yml username@IP:/home/username/
 scp nginx.conf username@IP:/home/username/
@@ -32,7 +32,7 @@ scp nginx.conf username@IP:/home/username/
 # IP - публичный IP сервера
 ```
 
-**_Для работы с GitHub Actions необходимо в репозитории в разделе Secrets > Actions создать переменные окружения:_**
+**Для работы с GitHub Actions необходимо в репозитории в разделе Secrets > Actions создать переменные окружения:**
 ```
 
 TOKEN                   - секретный ключ Django проекта
@@ -45,55 +45,8 @@ SSH_KEY                 - приватный ssh-ключ
 TELEGRAM_TO             - ID телеграм-аккаунта для отправки сообщения об успешном деплое
 TELEGRAM_TOKEN          - токен бота, отправляющего сообщение
 
-
-DB_ENGINE               - django.db.backends.postgresql
-DB_NAME                 - postgres
-POSTGRES_USER           - postgres
-POSTGRES_PASSWORD       - postgres
-DB_HOST                 - db
-DB_PORT                 - 5432 (порт по умолчанию)
 ```
-
-**_Создать и запустить контейнеры Docker, выполнить команду на сервере (версии команд "docker compose" или "docker-compose" отличаются в зависимости от установленной версии Docker Compose):**_
-```
-sudo docker compose up -d
-```
-**_Выполнить миграции:_**
-```
-sudo docker compose exec backend python manage.py migrate
-```
-**_Собрать статику:_**
-```
-sudo docker compose exec backend python manage.py collectstatic --noinput
-```
-**_Наполнить базу данных ингредиентами для рецептов**
-```
-sudo docker compose exec backend python manage.py dataload
-```
-**_Создать суперпользователя:_**
-```
-sudo docker compose exec backend python manage.py createsuperuser
-```
-**_Для остановки контейнеров Docker:_**
-```
-sudo docker compose down -v      - с их удалением
-sudo docker compose stop         - без удаления
-```
-### После каждого обновления репозитория (push в ветку master) будет происходить:
-
-1. Проверка кода на соответствие стандарту PEP8 (с помощью пакета flake8)
-2. Сборка и доставка докер-образов frontend, backend и gateway на Docker Hub
-3. Разворачивание проекта на удаленном сервере
-4. Отправка сообщения в Telegram в случае успеха
-
-### Локальный запуск проекта:
-
-**_Склонировать репозиторий_**
-```
-git@github.com:rodichevm/foodgram-project-react.git
-```
-
-**_В директории infra создать файл .env и заполнить данными:_**
+**Создать директорию "foodgram" на сервере и внутри директории, файл .env и наполнить переменными:**
 ```
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
@@ -103,11 +56,61 @@ DB_HOST=db
 DB_PORT=5432
 ```
 
-**_Создать и запустить контейнеры Docker_**
+**Создать и запустить контейнеры Docker, выполнить команду на сервере в директории с docker-compose.production**
+```
+sudo docker compose up -d
+```
+**Выполнить миграции:**
+```
+sudo docker compose exec backend_foodgram python manage.py migrate
+```
+**Собрать статику:**
+```
+sudo docker compose exec backend_foodgram python manage.py collectstatic
+```
+**Наполнить базу данных списком ингредиентов для рецептов**
+```
+sudo docker compose exec backend_foodgram python manage.py dataload
+```
+**Создать суперпользователя:**
+```
+sudo docker compose exec backend_foodgram python manage.py createsuperuser
+```
+**Для остановки контейнеров Docker:**
+```
+sudo docker compose down -v      - с их удалением
+sudo docker compose stop         - без удаления
+```
+### После каждого обновления репозитория (push в ветку master) будет происходить:
 
-**_После запуска проект будут доступен по адресу: http://localhost/_**
+1. Проверка кода на соответствие стандарту PEP8 (с помощью пакета flake8)
+2. Сборка и доставка докер-образов frontend, backend и gateway на Docker Hub
+3. Разворачивание проекта на удаленном сервере
+4. Отправка сообщения в Telegram об успешном выполнении деплоя
 
-**_Документация будет доступна по адресу: http://localhost/api/docs/_**
+### Локальный запуск проекта:
+
+**Склонировать репозиторий**
+```
+git@github.com:rodichevm/foodgram-project-react.git
+```
+
+**В директории проекта c docker-compose создать файл .env и заполнить данными:**
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DB_HOST=db
+DB_PORT=5432
+```
+
+**Создать и запустить контейнеры Docker (выполнять команду, находясь в директории с файлом docker-compose)**
+```
+docker compose up -d
+```
+
+**После локального запуска проект будет доступен по адресу: http://localhost/**
 
 
 ### Автор
