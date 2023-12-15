@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+from django.contrib.admin import SimpleListFilter
 from django_filters.rest_framework import FilterSet, filters
 from rest_framework.filters import SearchFilter
 
@@ -27,12 +29,15 @@ class RecipeFilter(FilterSet):
         model = Recipe
         fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart',)
 
-    def filter_is_favorited(self, queryset, name, value):
+    def filter_is_favorited(self, recipes, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(favorites__user=self.request.user)
-        return queryset
+            return recipes.filter(favorites__user=self.request.user)
+        return recipes
 
-    def filter_is_in_shopping_cart(self, queryset, name, value):
+    def filter_is_in_shopping_cart(self, recipes, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(shopping_list__user=self.request.user)
+            return recipes.filter(shopping_list__user=self.request.user)
         return
+
+
+

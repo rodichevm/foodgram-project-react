@@ -10,21 +10,20 @@ from rest_framework.permissions import (IsAuthenticated,
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
-from api.pagination import CustomPagination
+from api.pagination import Pagination
 from api.permissions import AuthorPermission
-from api.serializers import (CreateRecipeSerializer, CustomUserSerializer,
+from api.serializers import (CreateRecipeSerializer, UserSerializer,
                              FavoriteSerializer, IngredientSerializer,
                              ReadRecipeSerializer, ShoppingCartSerializer,
                              SubscribesSerializer, TagSerializer)
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Tag)
-from users.models import CustomUser, Follow
+from recipes.models import (Favorite, Follow, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Tag, User)
 
 
 class UserViewSet(UserViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-    pagination_class = CustomPagination
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    pagination_class = Pagination
 
     @action(
         detail=True,
@@ -33,7 +32,7 @@ class UserViewSet(UserViewSet):
     )
     def subscribe(self, request, id):
         user = request.user
-        author = get_object_or_404(CustomUser, pk=id)
+        author = get_object_or_404(User, pk=id)
 
         if request.method == 'POST':
             serializer = SubscribesSerializer(
@@ -52,7 +51,7 @@ class UserViewSet(UserViewSet):
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
-        queryset = CustomUser.objects.filter(following__user=user)
+        queryset = User.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)
         serializer = SubscribesSerializer(
             pages, many=True, context={'request': request}
@@ -80,7 +79,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
     permission_classes = (AuthorPermission,)
-    pagination_class = CustomPagination
+    pagination_class = Pagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
