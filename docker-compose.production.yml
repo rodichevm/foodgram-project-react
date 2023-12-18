@@ -19,7 +19,7 @@ services:
     image: rodichevm/foodgram_backend
     volumes:
       - static_value:/backend_static
-      - media_value:/media/
+      - media_value:/media
     depends_on:
       - db
     env_file: .env
@@ -41,6 +41,6 @@ services:
       - 7000:80
     volumes:
       - static_value:/staticfiles/
-      - media_value:/media/
+      - media_value:/media
     depends_on:
       - frontend
