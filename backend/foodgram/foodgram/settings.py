@@ -7,8 +7,8 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
-# DEBUG = os.getenv('DEBUG', default=False)
-DEBUG = True
+DEBUG = os.getenv('DEBUG', default=False)
+# DEBUG = True
 AUTH_USER_MODEL = 'recipes.User'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
                           '127.0.0.1 foodgramers.ddns.net localhost').split()
@@ -103,11 +103,15 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = 'media/'
+MEDIA_URL = '/media/'
+
+if DEBUG:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    MEDIA_ROOT = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -122,7 +126,7 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     "SERIALIZERS": {
-        "user_create": "api.serializers.UserCreateSerializer",
+        'user_create': 'djoser.serializers.UserCreateSerializer',
         "user": "api.serializers.UserSerializer",
         "current_user": "api.serializers.UserSerializer",
     },

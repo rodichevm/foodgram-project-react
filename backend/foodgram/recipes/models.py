@@ -1,14 +1,9 @@
 from colorfield.fields import ColorField
-from distlib.util import cached_property
-from django.contrib import admin
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q, UniqueConstraint
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
 
 class User(AbstractUser):
@@ -37,12 +32,12 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='following'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following'
+        related_name='follower'
     )
 
     class Meta:
@@ -95,13 +90,6 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
-    def display_color(self):
-        return format_html(
-            '<span style="width:20px;height:20px;display:block;background'
-            '-color:{}"></span>',
-            self.color)
-    display_color.short_description = 'Цвет'
-
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -117,6 +105,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
+        ordering = ('name', )
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
@@ -141,7 +130,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='IngredientInRecipe',
+        through='IngredientAmount',
         verbose_name='Продукты'
     )
     name = models.CharField(
@@ -173,15 +162,8 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
-    @cached_property
-    def display_image(self):
-        html = '<img src="{img}" width="100" height="100">'
-        return format_html(html, img=self.image.url)
 
-    display_image.short_description = 'Изображение'
-
-
-class IngredientInRecipe(models.Model):
+class IngredientAmount(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
@@ -196,7 +178,7 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
     )
 
     class Meta:
@@ -222,7 +204,7 @@ class FavoriteShoppingCart(models.Model):
     )
 
     class Meta:
-        default_related_name = '%(class)ss'
+        default_related_name = '%(class)s'
         abstract = True
         constraints = [
             UniqueConstraint(
@@ -238,6 +220,7 @@ class FavoriteShoppingCart(models.Model):
 class Favorite(FavoriteShoppingCart):
 
     class Meta(FavoriteShoppingCart.Meta):
+        default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
 
@@ -245,5 +228,6 @@ class Favorite(FavoriteShoppingCart):
 class ShoppingCart(FavoriteShoppingCart):
 
     class Meta(FavoriteShoppingCart.Meta):
+        default_related_name = 'shopping_cart'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
