@@ -19,7 +19,7 @@ services:
     build: ./backend/foodgram/
     volumes:
       - static_value:/backend_static
-      - media_value:/media
+      - media_value:/media/
     depends_on:
       - db
     env_file: .env
@@ -39,7 +39,7 @@ services:
     build: ./infra/
     volumes:
       - static_value:/staticfiles/
-      - media_value:/media
+      - media_value:/media/
     env_file: .env
     ports:
       - "8000:80"
