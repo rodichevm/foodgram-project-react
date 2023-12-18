@@ -43,6 +43,7 @@ class UserAdmin(UserAdmin):
     get_following.short_description = 'Подписки'
     get_followers.short_description = 'Подписчики'
     has_followers.boolean = True
+    has_followers.short_description = 'Есть подписчики'
 
 
 @admin.register(Follow)
