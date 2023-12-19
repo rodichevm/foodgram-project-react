@@ -1,4 +1,3 @@
-from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as BaseUserViewSet
@@ -16,8 +15,8 @@ from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              ShoppingCartSerializer, SubscribesSerializer,
                              TagSerializer, UserSerializer)
 from api.utils import send_message
-from recipes.models import (Favorite, Follow, Ingredient, IngredientAmount,
-                            Recipe, ShoppingCart, Tag, User)
+from recipes.models import (Favorite, Follow, Ingredient, Recipe, ShoppingCart,
+                            Tag, User)
 
 
 class UserViewSet(BaseUserViewSet):
@@ -51,8 +50,8 @@ class UserViewSet(BaseUserViewSet):
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
-        queryset = User.objects.filter(following__user=user)
-        pages = self.paginate_queryset(queryset)
+        subscriptions = User.objects.filter(following__user=user)
+        pages = self.paginate_queryset(subscriptions)
         serializer = SubscribesSerializer(
             pages, many=True, context={'request': request}
         )
@@ -109,19 +108,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=get_object_or_404(Recipe, id=pk)
         ).delete()
 
-    @staticmethod
-    def add_shopping_cart(request):
-        ingredients = IngredientAmount.objects.filter(
-            recipe__shopping_cart__user=request.user
-        ).order_by('ingredient__name').values(
-            'ingredient__name', 'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
-        return ingredients
-
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
-        ingredients = self.add_shopping_cart(request)
-        return send_message(ingredients)
+        return send_message(Recipe.add_shopping_cart(request))
 
     @action(
         detail=True,

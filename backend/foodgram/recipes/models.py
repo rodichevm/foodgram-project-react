@@ -1,14 +1,18 @@
 from colorfield.fields import ColorField
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q, UniqueConstraint
+from django.db.models import F, Q, Sum, UniqueConstraint
+
+from api.validators import UsernameValidator
 
 
 class User(AbstractUser):
-
-    email = models.EmailField(unique=True, verbose_name='Email')
+    email = models.EmailField(
+        unique=True,
+        verbose_name='Email',
+        max_length=254
+    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ("username", "first_name", "last_name",)
 
@@ -16,7 +20,7 @@ class User(AbstractUser):
         verbose_name='Никнейм',
         max_length=150,
         unique=True,
-        validators=(UnicodeUsernameValidator(),)
+        validators=[UsernameValidator()]
     )
 
     class Meta:
@@ -32,12 +36,14 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following'
+        related_name='following',
+        verbose_name='Пользователь'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='follower',
+        verbose_name='Автор'
     )
 
     class Meta:
@@ -83,7 +89,7 @@ class Tag(models.Model):
     )
 
     class Meta:
-        ordering = ('name', )
+        ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -105,7 +111,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
-        ordering = ('name', )
+        ordering = ('name',)
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
@@ -120,7 +126,8 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
-        verbose_name='Теги'
+        verbose_name='Теги',
+        related_name="recipes",
     )
     author = models.ForeignKey(
         User,
@@ -131,7 +138,8 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientAmount',
-        verbose_name='Продукты'
+        verbose_name='Продукты',
+        related_name="recipes",
     )
     name = models.CharField(
         max_length=200,
@@ -157,10 +165,17 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('-pub_date', )
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name
+
+    def add_shopping_cart(request):
+        return IngredientAmount.objects.filter(
+            recipe__shopping_cart__user=request.user
+        ).order_by('ingredient__name').values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
 
 
 class IngredientAmount(models.Model):
@@ -182,7 +197,7 @@ class IngredientAmount(models.Model):
     )
 
     class Meta:
-        ordering = ('recipe', )
+        ordering = ('recipe',)
         verbose_name = 'Продукт для рецепта'
         verbose_name_plural = 'Продукты для рецепта'
 
@@ -191,7 +206,7 @@ class IngredientAmount(models.Model):
                 f' - {self.amount}')
 
 
-class FavoriteShoppingCart(models.Model):
+class UserRecipe(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -204,7 +219,7 @@ class FavoriteShoppingCart(models.Model):
     )
 
     class Meta:
-        default_related_name = '%(class)s'
+        default_related_name = '%(class)s_set'
         abstract = True
         constraints = [
             UniqueConstraint(
@@ -217,17 +232,15 @@ class FavoriteShoppingCart(models.Model):
         return f'{self.user} : {self.recipe}'
 
 
-class Favorite(FavoriteShoppingCart):
-
-    class Meta(FavoriteShoppingCart.Meta):
+class Favorite(UserRecipe):
+    class Meta(UserRecipe.Meta):
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
 
 
-class ShoppingCart(FavoriteShoppingCart):
-
-    class Meta(FavoriteShoppingCart.Meta):
-        default_related_name = 'shopping_cart'
+class ShoppingCart(UserRecipe):
+    class Meta(UserRecipe.Meta):
+        default_related_name = 'shopping_carts'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'

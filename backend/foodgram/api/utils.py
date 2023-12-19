@@ -4,14 +4,17 @@ from django.http import FileResponse
 
 
 def send_message(ingredients):
-    shopping_cart = f'Дата: {datetime.date.today().isoformat()}'
-    shopping_cart += '\n'.join(
-        f'\n - {ingredient["ingredient__name"]})'
+    shopping_cart = '\n'.join(
+        f'Дата: {datetime.date.today().isoformat()}'
+        f'ПРОДУКТЫ:'
+        f'{index + 1}. {ingredient["ingredient__name"].capitalize()} '
         f'({ingredient["ingredient__measurement_unit"]}) - '
         f'{ingredient["amount"]}'
-        for ingredient in ingredients)
+        for index, ingredient in enumerate(ingredients))
 
-    file = f'shopping_cart_{datetime.date.today().isoformat()}.txt'
-    response = FileResponse(shopping_cart, content_type='text/plain')
-    response['Content-Disposition'] = f'attachment; filename={file}.txt'
+    response = FileResponse(
+        shopping_cart,
+        content_type='text/plain',
+        filename=f'shopping_cart_{datetime.date.today().isoformat()}.txt'
+    )
     return response
