@@ -179,7 +179,6 @@ class Recipe(models.Model):
         ).annotate(amount=Sum('amount'))
 
 
-
 class IngredientAmount(models.Model):
     recipe = models.ForeignKey(
         Recipe,

@@ -2,22 +2,22 @@ import datetime
 
 from django.http import FileResponse
 
-from recipes.models import Recipe
-
 
 def send_message(ingredients):
-    shopping_cart = (
-            f'Дата: {datetime.date.today().isoformat()}\n'
-            f'ПРОДУКТЫ:\n' +
-            '\n'.join(
-                (f'{index + 1}. {ingredient["ingredient__name"].capitalize()}'
-                 f' - {ingredient["amount"]}'
-                 f' {ingredient["ingredient__measurement_unit"]}'
+    header = (
+        f'Дата: {datetime.date.today().isoformat()}\n'
 
-                 for index, ingredient in enumerate(ingredients)))
     )
+    cart = '\n'.join(
+        (
+            f'{index + 1}.'
+            f'{ingredient["ingredient__name"].capitalize()}'
+            f' - {ingredient["amount"]}'
+            f' {ingredient["ingredient__measurement_unit"]}'
 
-    full_message = f'{shopping_cart}\n\nРЕЦЕПТЫ:'
+            for index, ingredient in enumerate(ingredients)))
+
+    full_message = f'{header}\nПРОДУКТЫ:\n{cart}'
 
     response = FileResponse(
         full_message,

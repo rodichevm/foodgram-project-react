@@ -171,16 +171,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    # @staticmethod
-    # def validate_repeat_existence(items, model):
-    #     item_ids = [item['id'] for item in items]
-    #     non_existent = model.objects.exclude(id__in=item_ids)
-    #     if non_existent.exists():
-    #         raise serializers.ValidationError({
-    #             'id': [
-    #                 f'Такого {model._meta.verbose_name} с id: {item["id"]} нет'
-    #                 for item in non_existent]
-    #         })
     @staticmethod
     def validate_repeat_existence(items, model):
         invalid_items = [

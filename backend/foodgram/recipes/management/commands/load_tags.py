@@ -4,6 +4,7 @@ import os
 from django.core.management import BaseCommand
 from django.db import transaction
 from foodgram.settings import BASE_DIR
+
 from recipes.models import Tag
 
 
