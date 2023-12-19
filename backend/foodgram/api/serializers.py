@@ -255,15 +255,19 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class BaseRecipeSerializer(serializers.ModelSerializer):
+class BaseUserRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         abstract = True
         fields = ('user', 'recipe')
 
     def validate(self, data):
         user = data['user']
-        if user.recipes.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError('Рецепт уже добавлен')
+        if user.shopping_carts.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину')
+        if user.favorites.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное')
         return data
 
     def to_representation(self, instance):
@@ -273,11 +277,11 @@ class BaseRecipeSerializer(serializers.ModelSerializer):
         ).data
 
 
-class ShoppingCartSerializer(BaseRecipeSerializer):
-    class Meta(BaseRecipeSerializer.Meta):
+class ShoppingCartSerializer(BaseUserRecipeSerializer):
+    class Meta(BaseUserRecipeSerializer.Meta):
         model = ShoppingCart
 
 
-class FavoriteSerializer(BaseRecipeSerializer):
-    class Meta(BaseRecipeSerializer.Meta):
+class FavoriteSerializer(BaseUserRecipeSerializer):
+    class Meta(BaseUserRecipeSerializer.Meta):
         model = Favorite
