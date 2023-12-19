@@ -8,8 +8,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
-# DEBUG = os.getenv('DEBUG', default=False)
-DEBUG = True
+DEBUG = os.getenv('DEBUG', default=False)
+# DEBUG = True
 AUTH_USER_MODEL = 'recipes.User'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
                           '127.0.0.1 foodgramers.ddns.net localhost').split()
@@ -109,8 +109,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
-# MEDIA_ROOT = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
