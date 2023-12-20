@@ -3,20 +3,31 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import Pagination
 from api.permissions import IsAuthorOrSafePermission
-from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
-                             IngredientSerializer, ReadRecipeSerializer,
-                             ShoppingCartSerializer, SubscribesSerializer,
-                             TagSerializer, UserSerializer)
+from api.serializers import (
+    CreateRecipeSerializer, FavoriteSerializer,
+    IngredientSerializer, ReadRecipeSerializer,
+    ShoppingCartSerializer, SubscribesSerializer,
+    TagSerializer, UserSerializer
+)
 from api.utils import send_message
-from recipes.models import (Favorite, Follow, Ingredient, Recipe, ShoppingCart,
-                            Tag, User)
+from recipes.models import (
+    Favorite,
+    Follow,
+    Ingredient,
+    Recipe,
+    ShoppingCart,
+    Tag,
+    User
+)
 
 
 class UserViewSet(BaseUserViewSet):
@@ -87,20 +98,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return CreateRecipeSerializer
 
     @staticmethod
-    def add_favorite_or_carts(request, pk, serializer):
-        context = {'request': request}
+    def add_recipe_to(request, pk, serializer):
         recipe = get_object_or_404(Recipe, id=pk)
-        data = {
-            'user': request.user.id,
-            'recipe': recipe.id
-        }
-        serializer = serializer(data=data, context=context)
+        serializer = serializer(
+            data={
+                'user': request.user.id,
+                'recipe': recipe.id
+            },
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @staticmethod
-    def destroy_favorite_or_cart(request, pk, model):
+    def destroy_recipe_from(request, pk, model):
         get_object_or_404(
             model,
             user=request.user,
@@ -117,23 +129,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
-        return self.add_favorite_or_carts(
-            request, pk, ShoppingCartSerializer
-        )
-
-    @shopping_cart.mapping.delete
-    def destroy_shopping_cart(self, request, pk):
-        self.destroy_favorite_or_cart(request, pk, ShoppingCart)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.add_recipe_to(request, pk, ShoppingCartSerializer)
 
     @action(
         detail=True,
         methods=('POST',),
-        permission_classes=[IsAuthenticated])
+        permission_classes=[IsAuthenticated]
+    )
     def favorite(self, request, pk):
-        return self.add_favorite_or_carts(request, pk, FavoriteSerializer)
+        return self.add_recipe_to(request, pk, FavoriteSerializer)
+
+    @shopping_cart.mapping.delete
+    def destroy_shopping_cart(self, request, pk):
+        self.destroy_recipe_from(request, pk, ShoppingCart)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @favorite.mapping.delete
     def destroy_favorite(self, request, pk):
-        self.destroy_favorite_or_cart(request, pk, Favorite)
+        self.destroy_recipe_from(request, pk, Favorite)
         return Response(status=status.HTTP_204_NO_CONTENT)

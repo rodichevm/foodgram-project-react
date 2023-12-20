@@ -3,8 +3,16 @@ from djoser.serializers import UserSerializer as DjosersUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers, status
 
-from recipes.models import (Favorite, Follow, Ingredient, IngredientAmount,
-                            Recipe, ShoppingCart, Tag, User)
+from recipes.models import (
+    Favorite,
+    Follow,
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    ShoppingCart,
+    Tag,
+    User
+)
 
 
 class UserSerializer(DjosersUserSerializer):
@@ -248,16 +256,6 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
         abstract = True
         fields = ('user', 'recipe')
 
-    def validate(self, data):
-        user = data['user']
-        if user.shopping_carts.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину')
-        if user.favorites.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в избранное')
-        return data
-
     def to_representation(self, instance):
         return ShortRecipeSerializer(
             instance.recipe,
@@ -266,10 +264,25 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(BaseUserRecipeSerializer):
+
     class Meta(BaseUserRecipeSerializer.Meta):
         model = ShoppingCart
+
+    def validate(self, data):
+        user = data['user']
+        if user.shopping_carts.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину')
+        return data
 
 
 class FavoriteSerializer(BaseUserRecipeSerializer):
     class Meta(BaseUserRecipeSerializer.Meta):
         model = Favorite
+
+    def validate(self, data):
+        user = data['user']
+        if user.favorites.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное')
+        return data
