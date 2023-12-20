@@ -5,14 +5,8 @@ from django.contrib.auth.models import Group
 from django.utils.safestring import mark_safe
 
 from recipes.models import (
-    Favorite,
-    Follow,
-    Ingredient,
-    IngredientAmount,
-    Recipe,
-    ShoppingCart,
-    Tag,
-    User
+    Favorite, Follow, Ingredient, IngredientAmount,
+    Recipe, ShoppingCart, Tag, User
 )
 
 
