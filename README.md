@@ -70,7 +70,11 @@ sudo docker compose exec backend_foodgram python manage.py collectstatic
 ```
 **Наполнить базу данных списком ингредиентов для рецептов**
 ```
-sudo docker compose exec backend_foodgram python manage.py dataload
+sudo docker compose exec backend_foodgram python manage.py load_ingredients
+```
+**Наполнить базу данных списком тегов для рецептов**
+```
+sudo docker compose exec backend_foodgram python manage.py load_tags
 ```
 **Создать суперпользователя:**
 ```
