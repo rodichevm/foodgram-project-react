@@ -49,8 +49,7 @@ class UserViewSet(BaseUserViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
-        user = request.user
-        subscriptions = User.objects.filter(following__user=user)
+        subscriptions = User.objects.filter(follower__user=request.user)
         pages = self.paginate_queryset(subscriptions)
         serializer = SubscribesSerializer(
             pages, many=True, context={'request': request}
@@ -115,9 +114,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=('POST',),
-        permission_classes=[IsAuthenticated])
+        permission_classes=[IsAuthenticated]
+    )
     def shopping_cart(self, request, pk):
-        return self.add_favorite_or_carts(request, pk, ShoppingCartSerializer)
+        return self.add_favorite_or_carts(
+            request, pk, ShoppingCartSerializer
+        )
 
     @shopping_cart.mapping.delete
     def destroy_shopping_cart(self, request, pk):

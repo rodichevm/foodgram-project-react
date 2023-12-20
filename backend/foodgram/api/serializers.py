@@ -131,10 +131,8 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
     def get_flagged(self, recipe, model):
         request = self.context.get('request')
-
         if not request or request.user.is_anonymous:
             return False
-
         return model.objects.filter(user=request.user, recipe=recipe).exists()
 
     def get_is_favorited(self, recipe):
