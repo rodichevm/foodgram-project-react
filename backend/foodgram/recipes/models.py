@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q, Sum, UniqueConstraint
 
-from api.validators import UsernameValidator
+from recipes.validators import UsernameValidator
 
 
 class User(AbstractUser):
@@ -36,13 +36,13 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following',
+        related_name='follower',
         verbose_name='Пользователь'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower',
+        related_name='following',
         verbose_name='Автор'
     )
 
@@ -220,7 +220,7 @@ class UserRecipe(models.Model):
     )
 
     class Meta:
-        default_related_name = '%(class)s_set'
+        default_related_name = '%(class)ss'
         abstract = True
         constraints = [
             UniqueConstraint(
@@ -235,13 +235,11 @@ class UserRecipe(models.Model):
 
 class Favorite(UserRecipe):
     class Meta(UserRecipe.Meta):
-        default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
 
 
 class ShoppingCart(UserRecipe):
     class Meta(UserRecipe.Meta):
-        default_related_name = 'shopping_carts'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'

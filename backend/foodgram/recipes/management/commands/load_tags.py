@@ -2,7 +2,6 @@ import json
 import os
 
 from django.core.management import BaseCommand
-from django.db import transaction
 from foodgram.settings import BASE_DIR
 
 from recipes.models import Tag
@@ -15,10 +14,9 @@ class Command(BaseCommand):
                 encoding='utf-8'
         ) as tags_file:
             data = json.loads(tags_file.read())
-
-            with transaction.atomic():
-                Tag.objects.bulk_create(
-                    [Tag(**tag) for tag in data],
-                    ignore_conflicts=True)
+            Tag.objects.bulk_create(
+                    (Tag(**tag) for tag in data),
+                    ignore_conflicts=True
+            )
 
         self.stdout.write(self.style.SUCCESS('Теги успешно импортированы'))

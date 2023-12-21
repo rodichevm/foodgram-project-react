@@ -2,7 +2,6 @@ import json
 import os
 
 from django.core.management import BaseCommand
-from django.db import transaction
 from foodgram.settings import BASE_DIR
 
 from recipes.models import Ingredient
@@ -15,10 +14,9 @@ class Command(BaseCommand):
                 encoding='utf-8'
         ) as ingredients_file:
             data = json.loads(ingredients_file.read())
-
-            with transaction.atomic():
-                Ingredient.objects.bulk_create(
-                    [Ingredient(**ingredient) for ingredient in data],
-                    ignore_conflicts=True)
+            Ingredient.objects.bulk_create(
+                (Ingredient(**ingredient) for ingredient in data),
+                ignore_conflicts=True
+            )
 
         self.stdout.write(self.style.SUCCESS('Продукты успешно импортированы'))
