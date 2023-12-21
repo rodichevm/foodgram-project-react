@@ -27,7 +27,7 @@ class UserSerializer(DjosersUserSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return user.following.filter(user=request.user).exists()
+        return user.follower.filter(user=request.user).exists()
 
 
 class SubscribesSerializer(UserSerializer):
@@ -59,11 +59,14 @@ class SubscribesSerializer(UserSerializer):
             )
         return data
 
-    def get_recipes(self, obj):
+    def get_recipes(self, subscribe):
         request = self.context.get('request')
         limit = int(request.GET.get('recipes_limit', 10 ** 10))
         return RecipeShortSerializer(
-            obj.recipes.all()[: limit], many=True, read_only=True).data
+            subscribe.recipes.all()[: limit],
+            many=True,
+            read_only=True
+        ).data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -144,8 +147,9 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
         return self.get_flagged(recipe, ShoppingCart)
 
     def get_ingredients(self, recipe):
-        ingredients = Ingredient.objects.filter(recipe=recipe)
-        return IngredientAmountSerializer(ingredients, many=True).data
+        return IngredientAmountSerializer(
+            recipe.ingredientinrecipes.all(), many=True
+        ).data
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
@@ -207,7 +211,8 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             })
         return data
 
-    def ingredients_create(self, ingredients, recipe):
+    @staticmethod
+    def ingredients_create(ingredients, recipe):
         IngredientAmount.objects.bulk_create(
             IngredientAmount(
                 recipe=recipe,
@@ -263,7 +268,7 @@ class ShoppingCartSerializer(BaseUserRecipeSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.shopping_carts.filter(recipe=data['recipe']).exists():
+        if user.shoppingcarts.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError(
                 'Рецепт уже добавлен в корзину')
         return data
