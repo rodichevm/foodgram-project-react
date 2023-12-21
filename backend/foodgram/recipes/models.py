@@ -173,7 +173,7 @@ class Recipe(models.Model):
     @staticmethod
     def add_shopping_cart(request):
         return IngredientAmount.objects.filter(
-            recipe__shopping_carts__user=request.user
+            recipe__shoppingcarts__user=request.user
         ).order_by('ingredient__name').values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
