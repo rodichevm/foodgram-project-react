@@ -31,7 +31,7 @@ class CookingTimeFilter(SimpleListFilter):
         if not self.value() or self.value() not in self.LOOKUP_VALUES:
             return recipes
 
-        return recipes.distinct().filter(**self.LOOKUP_VALUES[self.value()])
+        return recipes.filter(**self.LOOKUP_VALUES[self.value()])
 
 
 @admin.register(User)
@@ -39,8 +39,8 @@ class UserAdmin(UserAdmin):
     model = User
     list_display = (
         'id',
-        'first_name',
-        'last_name',
+        'get_name',
+        'username',
         'email',
         'get_recipes',
         'get_following',
@@ -50,17 +50,21 @@ class UserAdmin(UserAdmin):
     ordering = ('username',)
     empty_value_display = '-пусто-'
 
-    @admin.display(description='Количество рецептов')
+    @admin.display(description='Имя')
+    def get_name(self, user):
+        return f'{user.first_name} {user.last_name}'
+
+    @admin.display(description='Рецептов')
     def get_recipes(self, user):
         return user.recipes.count()
 
-    @admin.display(description='Подписки')
+    @admin.display(description='Подписок')
     def get_following(self, user):
-        return user.following.count()
-
-    @admin.display(description='Подписчики')
-    def get_followers(self, user):
         return user.follower.count()
+
+    @admin.display(description='Подписчиков')
+    def get_followers(self, user):
+        return user.following.count()
 
 
 @admin.register(Follow)
@@ -72,17 +76,20 @@ class FollowAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     model = Tag
-    list_display = ('name', 'display_color', 'slug')
+    list_display = ('name', 'display_color', 'hex_code', 'slug')
     search_fields = ('name', 'slug')
     empty_value_display = '-пусто-'
 
     @admin.display(description='Цвет HEX')
     def display_color(self, obj):
         return mark_safe(
-            '<div style="background-color: {}; width: 30px; height: '
-            '30px;"></div>'.format(
-                obj.color)
+            f'<div style="background-color: {obj.color}; width: '
+            f'30px; height: 30px;"></div>'
         )
+
+    @admin.display(description='код HEX')
+    def hex_code(self, obj):
+        return obj.color
 
 
 @admin.register(Ingredient)
@@ -90,7 +97,7 @@ class IngredientAdmin(admin.ModelAdmin):
     model = Ingredient
     list_display = ('name', 'measurement_unit')
     search_fields = ('name', 'measurement_unit')
-    list_filter = ('measurement_unit', )
+    list_filter = ('measurement_unit',)
     empty_value_display = '-пусто-'
 
 
@@ -113,8 +120,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'get_image'
     )
     search_fields = ('name', 'author', 'tags')
-    list_filter = ('tags__name', CookingTimeFilter, )
-    inlines = (IngredientInline, )
+    list_filter = ('tags__name', CookingTimeFilter,)
+    inlines = (IngredientInline,)
 
     @admin.display(description='В избранном')
     def get_favorites(self, recipe):
@@ -122,8 +129,9 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Теги')
     def get_tags(self, recipe):
-        tags = recipe.tags.all()
-        return mark_safe('<br>'.join(str(tag) for tag in tags))
+        return mark_safe(
+            '<br>'.join(str(tag) for tag in recipe.tags.all())
+        )
 
     @admin.display(description='Продукты')
     def get_ingredients(self, recipe):
@@ -135,8 +143,6 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Изображение')
     def get_image(self, recipe):
         return mark_safe(f'<img src={recipe.image.url} width="80" hieght="30"')
-
-    get_ingredients.allow_tags = True
 
 
 @admin.register(Favorite)
@@ -151,7 +157,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 class ShoppingCartAdmin(admin.ModelAdmin):
     model = ShoppingCart
     list_display = ('recipe', 'user')
-    search_fields = ('user', )
+    search_fields = ('user',)
     empty_value_display = '-пусто-'
 
 
