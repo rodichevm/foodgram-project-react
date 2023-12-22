@@ -177,7 +177,9 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_repeat_existence(items, model):
-        item_ids = [item['id'] for item in items]
+        item_ids = [
+            item for item in items
+        ]
         invalid_items = [
             item_id for item_id in item_ids
             if not model.objects.filter(id=item_id).exists()
@@ -201,9 +203,17 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         tags = data.get('tags')
+        tags_ids = {tag.id for tag in tags}
+        self.validate_repeat_existence(tags_ids, Tag)
+
         ingredients = data.get('ingredients')
-        self.validate_repeat_existence(tags, Tag)
-        self.validate_repeat_existence(ingredients, Ingredient)
+        ingredient_ids = {
+            ingredient.get('id') for ingredient in [
+                dict(item) for item in ingredients
+            ]
+        }
+        self.validate_repeat_existence(ingredient_ids, Ingredient)
+
         if [item for item in ingredients if item['amount'] < 1]:
             raise serializers.ValidationError(
                 {'ingredients': 'Количество продукта должно быть не менее 1'}
@@ -242,7 +252,10 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             IngredientAmount.objects.create(recipe=instance,
                                             ingredient_id=ingredient_id,
                                             amount=amount)
-        instance.tags.set(validated_data.pop('tags'))
+        tags = validated_data.pop('tags')
+        instance.tags.clear()
+        for tag in tags:
+            instance.tags.add(tag)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
