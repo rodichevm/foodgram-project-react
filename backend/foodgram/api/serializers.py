@@ -97,7 +97,9 @@ class IngredientsCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['id'] = instance.ingredient.id
+        ingredients_ids = instance.ingredients.all().values_list('id',
+                                                                 flat=True)
+        representation['ingredients'] = list(ingredients_ids)
         return representation
 
 
