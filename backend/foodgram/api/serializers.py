@@ -177,24 +177,26 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_repeat_existence(items, model):
+        item_ids = [item['id'] for item in items]
         invalid_items = [
-            item.id if isinstance(item, Tag) else item['id']
-            for item in items
-            if not model.objects.filter(
-                id=item.id if isinstance(item, Tag) else item[
-                    'id']).exists()
+            item_id for item_id in item_ids
+            if not model.objects.filter(id=item_id).exists()
         ]
         if invalid_items:
             raise serializers.ValidationError(
-                {'Несуществующие элементы': invalid_items}
+                {
+                    f'Несуществующие элементы для модели '
+                    f'{model._meta.verbose_name}': invalid_items
+                }
             )
-        item_ids = [
-            item.id if isinstance(item, Tag) else item['id']
-            for item in items
+        duplicate_items = [
+            item_id for item_id in set(item_ids)
+            if item_ids.count(item_id) > 1
         ]
         if len(items) != len(set(item_ids)):
             raise serializers.ValidationError(
-                {'Повторяющиеся элементы': item_ids}
+                {f'Повторяющиеся элементы для модели '
+                 f'{model._meta.verbose_name}': duplicate_items}
             )
 
     def validate(self, data):
@@ -204,7 +206,8 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         self.validate_repeat_existence(ingredients, Ingredient)
         if [item for item in ingredients if item['amount'] < 1]:
             raise serializers.ValidationError(
-                'Минимальное количество продукта: 1')
+                {'ingredients': 'Количество продукта должно быть не менее 1'}
+            )
         if data.get('cooking_time') < 1:
             raise serializers.ValidationError({
                 'cooking_time': 'Время должно быть больше одной минуты'
@@ -255,6 +258,15 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
         abstract = True
         fields = ('user', 'recipe')
 
+    def validate(self, data):
+        model = self.Meta.model
+        if model.objects.filter(
+                user=data['user'], recipe=data['recipe']
+        ).exists():
+            raise serializers.ValidationError(
+                f'Рецепт уже добавлен в {model._meta.verbose_name}')
+        return data
+
     def to_representation(self, instance):
         return ShortRecipeSerializer(
             instance.recipe,
@@ -266,21 +278,7 @@ class ShoppingCartSerializer(BaseUserRecipeSerializer):
     class Meta(BaseUserRecipeSerializer.Meta):
         model = ShoppingCart
 
-    def validate(self, data):
-        user = data['user']
-        if user.shoppingcarts.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину')
-        return data
-
 
 class FavoriteSerializer(BaseUserRecipeSerializer):
     class Meta(BaseUserRecipeSerializer.Meta):
         model = Favorite
-
-    def validate(self, data):
-        user = data['user']
-        if user.favorites.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в избранное')
-        return data
