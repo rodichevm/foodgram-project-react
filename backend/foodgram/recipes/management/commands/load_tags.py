@@ -15,8 +15,8 @@ class Command(BaseCommand):
         ) as tags_file:
             data = json.loads(tags_file.read())
             Tag.objects.bulk_create(
-                    (Tag(**tag) for tag in data),
-                    ignore_conflicts=True
+                (Tag(**tag) for tag in data),
+                ignore_conflicts=True
             )
 
         self.stdout.write(self.style.SUCCESS('Теги успешно импортированы'))

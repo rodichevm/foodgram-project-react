@@ -4,7 +4,7 @@ import datetime
 def send_message(data):
     result_lines = [
         f'Дата: {datetime.date.today().isoformat()}\n',
-        f'ПРОДУКТЫ:',
+        'ПРОДУКТЫ:',
         *[
             f'{index + 1}.'
             f'{ingredient["ingredient__name"].capitalize()}'
@@ -12,7 +12,7 @@ def send_message(data):
             f' {ingredient["ingredient__measurement_unit"]}'
             for index, ingredient in enumerate(data)
         ],
-        f'РЕЦЕПТЫ:',
+        'РЕЦЕПТЫ:',
     ]
     added_recipes = set()
     for index, recipe in enumerate(data):
@@ -24,5 +24,3 @@ def send_message(data):
             added_recipes.add(recipe["recipe__name"])
 
     return '\n'.join(result_lines)
-
-
