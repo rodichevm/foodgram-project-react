@@ -114,7 +114,6 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         return representation
 
 
-
 class ReadRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=False, many=True)
     ingredients = IngredientAmountSerializer(
