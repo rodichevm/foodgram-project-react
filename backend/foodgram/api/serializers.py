@@ -108,6 +108,11 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         model = IngredientAmount
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = instance.ingredient_id
+        return representation
+
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=False, many=True)
@@ -230,7 +235,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             IngredientAmount(
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount')
+                amount=ingredient.get('amount'),
             ) for ingredient in ingredients
         )
 
@@ -244,14 +249,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        instance.tags.clear()
-        instance.tags.set(validated_data.pop('tags'))
-        IngredientAmount.objects.filter(recipe=instance).delete()
-        super().update(instance, validated_data)
-        self.ingredients_create(ingredients, instance)
-        instance.save()
-        return instance
+        if 'ingredients' in validated_data:
+            ingredients = validated_data.pop('ingredients')
+            instance.ingredients.clear()
+            self.ingredients_create(ingredients, instance)
+        if 'tags' in validated_data:
+            instance.tags.set(validated_data.pop('tags'))
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         return ReadRecipeSerializer(
