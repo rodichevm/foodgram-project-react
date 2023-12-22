@@ -108,11 +108,6 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         model = IngredientAmount
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['id'] = instance.ingredient
-        return representation
-
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=False, many=True)
