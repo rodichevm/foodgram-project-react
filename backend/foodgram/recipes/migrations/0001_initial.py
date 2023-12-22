@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
                 ('email', models.EmailField(max_length=254, unique=True, verbose_name='Email')),
-                ('username', models.CharField(max_length=150, unique=True, validators=[recipes.validators.UsernameValidator()], verbose_name='Никнейм')),
+                ('username', models.CharField(max_length=150, unique=True, validators=[recipes.validators.validate_username], verbose_name='Никнейм')),
             ],
             options={
                 'verbose_name': 'Пользователь',
