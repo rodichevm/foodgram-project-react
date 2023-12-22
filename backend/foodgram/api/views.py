@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -115,7 +116,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
-        return send_message(Recipe.add_shopping_cart(request))
+        response = HttpResponse(
+            send_message(
+                Recipe.add_shopping_cart(request)
+            ),
+            content_type='text/plain'
+        )
+        response[
+            'Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
+        return response
 
     @action(
         detail=True,
