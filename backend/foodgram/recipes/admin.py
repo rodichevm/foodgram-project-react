@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
+from django.db.models import Max, Min
 from django.utils.safestring import mark_safe
 
 from recipes.models import (
@@ -14,24 +15,27 @@ class CookingTimeFilter(SimpleListFilter):
     title = 'Время приготовления'
     parameter_name = 'cooking_time'
 
-    LOOKUP_VALUES = {
-        'fast': {'cooking_time__lte': 15},
-        'medium': {'cooking_time__gt': 15, 'cooking_time__lte': 60},
-        'slow': {'cooking_time__gt': 60},
-    }
-
     def lookups(self, request, model_admin):
-        return [
-            ('fast', 'Быстрые (до 15 минут)'),
-            ('medium', 'Средние (15-60 минут)'),
-            ('slow', 'Долгие (больше 60 минут)'),
+        thresholds = [
+            (0, 15, 'Быстрые (до 15 мин.)'),
+            (16, 45, 'Средние (15 - 45 мин.)'),
+            (46, 10**10, 'Долгие (более 45 мин.)')
         ]
+        lookup_choices = []
 
-    def queryset(self, request, recipes):
-        if not self.value() or self.value() not in self.LOOKUP_VALUES:
-            return recipes
+        for low, high, label in thresholds:
+            recipe_count = model_admin.get_queryset(request).filter(
+                cooking_time__range=(low, high)).count()
+            lookup_choices.append(
+                (f'{low}-{high}', f'{label} ({recipe_count} рецептов)'))
 
-        return recipes.filter(**self.LOOKUP_VALUES[self.value()])
+        return lookup_choices
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            low, high = map(int, value.split('-'))
+            return queryset.filter(cooking_time__range=(low, high))
 
 
 @admin.register(User)
