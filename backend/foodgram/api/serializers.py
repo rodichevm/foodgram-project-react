@@ -96,11 +96,9 @@ class IngredientsCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
     def to_representation(self, instance):
-        return {
-            'id': instance.get('id'),
-            'amount': instance.get('amount'),
-        }
-
+        representation = super().to_representation(instance)
+        representation['id'] = instance.id
+        return representation
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
