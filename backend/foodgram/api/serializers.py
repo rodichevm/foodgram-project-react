@@ -95,6 +95,11 @@ class IngredientsCreateSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = ('id', 'amount')
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = instance.ingredient_id
+        return representation
+
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
