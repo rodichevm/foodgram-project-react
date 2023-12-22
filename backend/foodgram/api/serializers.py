@@ -182,9 +182,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_repeat_existence(items, model):
-        item_ids = [
-            item for item in items
-        ]
+        item_ids = [item for item in items]
         invalid_items = [
             item_id for item_id in item_ids
             if not model.objects.filter(id=item_id).exists()
@@ -196,27 +194,27 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                     f'{model._meta.verbose_name}': invalid_items
                 }
             )
-        duplicate_items = [
-            item_id for item_id in set(item_ids)
-            if item_ids.count(item_id) > 1
-        ]
-        if len(items) != len(set(item_ids)):
+        # duplicate_items = [
+        #     item_id for item_id in item_ids
+        #     if item_ids.count(item_id) > 1
+        # ]
+        if len(item_ids) != len(set(item_ids)):
             raise serializers.ValidationError(
                 {f'Повторяющиеся элементы для модели '
-                 f'{model._meta.verbose_name}': duplicate_items}
+                 f'{model._meta.verbose_name}'}
             )
 
     def validate(self, data):
         tags = data.get('tags')
-        tags_ids = {tag.id for tag in tags}
+        tags_ids = [tag.id for tag in tags]
         self.validate_repeat_existence(tags_ids, Tag)
 
         ingredients = data.get('ingredients')
-        ingredient_ids = {
+        ingredient_ids = [
             ingredient.get('id') for ingredient in [
                 dict(item) for item in ingredients
             ]
-        }
+        ]
         self.validate_repeat_existence(ingredient_ids, Ingredient)
 
         if [item for item in ingredients if item['amount'] < 1]:
