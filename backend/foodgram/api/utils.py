@@ -1,27 +1,28 @@
 import datetime
 
-from django.http import FileResponse
 
-
-def send_message(ingredients):
-    header = (
-        f'Дата: {datetime.date.today().isoformat()}\n'
-
-    )
-    cart = '\n'.join(
-        (
+def send_message(data):
+    result_lines = [
+        f'Дата: {datetime.date.today().isoformat()}\n',
+        f'ПРОДУКТЫ:',
+        *[
             f'{index + 1}.'
             f'{ingredient["ingredient__name"].capitalize()}'
             f' - {ingredient["amount"]}'
             f' {ingredient["ingredient__measurement_unit"]}'
+            for index, ingredient in enumerate(data)
+        ],
+        f'РЕЦЕПТЫ:',
+    ]
+    added_recipes = set()
+    for index, recipe in enumerate(data):
+        if recipe["recipe__name"] not in added_recipes:
+            result_lines.append(
+                f'{index + 1}.'
+                f'{recipe["recipe__name"].capitalize()}'
+            )
+            added_recipes.add(recipe["recipe__name"])
 
-            for index, ingredient in enumerate(ingredients)))
+    return '\n'.join(result_lines)
 
-    full_message = f'{header}\nПРОДУКТЫ:\n{cart}'
 
-    response = FileResponse(
-        full_message,
-        content_type='text/plain',
-        filename=f'shopping_cart_{datetime.date.today().isoformat()}.txt'
-    )
-    return response

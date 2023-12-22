@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q, Sum, UniqueConstraint
 
-from recipes.validators import UsernameValidator
+from recipes.validators import validate_username
 
 
 class User(AbstractUser):
@@ -20,7 +20,7 @@ class User(AbstractUser):
         verbose_name='Никнейм',
         max_length=150,
         unique=True,
-        validators=[UsernameValidator()]
+        validators=[validate_username]
     )
 
     class Meta:
@@ -175,7 +175,7 @@ class Recipe(models.Model):
         return IngredientAmount.objects.filter(
             recipe__shoppingcarts__user=request.user
         ).order_by('ingredient__name').values(
-            'ingredient__name', 'ingredient__measurement_unit'
+            'ingredient__name', 'ingredient__measurement_unit', 'recipe__name'
         ).annotate(amount=Sum('amount'))
 
 
