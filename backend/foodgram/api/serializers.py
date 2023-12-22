@@ -89,10 +89,16 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientsCreateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    amount = serializers.IntegerField()
 
     class Meta:
-        model = IngredientAmount
+        model = Ingredient
         fields = ('id', 'amount')
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = instance.ingredient.id
+        return representation
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
