@@ -9,4 +9,3 @@ def validate_username(username):
         raise ValidationError(
             f'Недопустимые символы в никнейме: {invalid_chars}'
         )
-

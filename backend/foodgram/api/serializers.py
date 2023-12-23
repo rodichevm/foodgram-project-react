@@ -196,7 +196,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             map(
                 str,
                 {item_id for item_id in items if items.count(item_id) > 1}
-                )
+            )
         )
         if len(items) != len(set(items)):
             raise serializers.ValidationError(
