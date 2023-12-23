@@ -16,24 +16,19 @@ class CookingTimeFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         lookup_choices = []
-        thresholds = [0, 15, 45, 10**10]
+        thresholds = [15, 45]
 
-        for i in range(len(thresholds) - 1):
-            low, high = thresholds[i], thresholds[i + 1]
-            if low in range(0, 15):
-                label = 'Быстрые'
-            elif low in range(15, 45):
-                label = 'Средние'
-            elif low in range(45, 10**10):
-                label = 'Долгие'
-            else:
-                label = 'Неизвестно'
-
+        for low, high, label in [
+            (0, thresholds[0], 'Быстрые'),
+            (thresholds[0], thresholds[1], 'Средние'),
+            (thresholds[1], 10 ** 10, 'Долгие')
+        ]:
             recipe_count = model_admin.get_queryset(request).filter(
                 cooking_time__range=(low, high)).count()
 
             lookup_choices.append(
-                (f'{low + 1}-{high}', f'{label} ({recipe_count} рецептов)'))
+                (f'{low + 1}-{high}', f'{label} ({recipe_count} рецептов)')
+            )
 
         return lookup_choices
 
