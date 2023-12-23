@@ -182,49 +182,52 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_repeat_existence(items, model):
-        item_ids = [item for item in items]
         invalid_items = [
-            item_id for item_id in item_ids
+            item_id for item_id in items
             if not model.objects.filter(id=item_id).exists()
         ]
         if invalid_items:
+            invalid_items_str = ', '.join(map(str, invalid_items))
             raise serializers.ValidationError(
-                {
-                    f'Несуществующие элементы для модели '
-                    f'{model._meta.verbose_name}': invalid_items
-                }
+                f'Несуществующие элементы для модели '
+                f'{model._meta.verbose_name}: {invalid_items_str}'
             )
-        # duplicate_items = [
-        #     item_id for item_id in item_ids
-        #     if item_ids.count(item_id) > 1
-        # ]
-        if len(item_ids) != len(set(item_ids)):
+        duplicate_items = ', '.join(
+            map(
+                str,
+                {item_id for item_id in items if items.count(item_id) > 1}
+                )
+        )
+        if len(items) != len(set(items)):
             raise serializers.ValidationError(
-                {f'Повторяющиеся элементы для модели '
-                 f'{model._meta.verbose_name}'}
+                f'Повторяющиеся элементы для модели '
+                f'{model._meta.verbose_name}: {duplicate_items}'
             )
 
     def validate(self, data):
         tags = data.get('tags')
-        tags_ids = [tag.id for tag in tags]
-        self.validate_repeat_existence(tags_ids, Tag)
-
         ingredients = data.get('ingredients')
-        ingredient_ids = [
-            ingredient.get('id') for ingredient in [
-                dict(item) for item in ingredients
-            ]
-        ]
-        self.validate_repeat_existence(ingredient_ids, Ingredient)
+        cooking_time = data.get('cooking_time')
 
-        if [item for item in ingredients if item['amount'] < 1]:
+        self.validate_repeat_existence([tag.id for tag in tags], Tag)
+        self.validate_repeat_existence(
+            [item['id'] for item in ingredients], Ingredient
+        )
+
+        incorrect_ingredients = [
+            item['id'] for item in ingredients if item['amount'] < 1
+        ]
+        if incorrect_ingredients:
+            invalid_items_str = ', '.join(map(str, incorrect_ingredients))
             raise serializers.ValidationError(
-                {'ingredients': 'Количество продукта должно быть не менее 1'}
+                f'Количество у продуктов: {invalid_items_str} '
+                f'должно быть не менее 1'
             )
-        if data.get('cooking_time') < 1:
-            raise serializers.ValidationError({
-                'cooking_time': 'Время должно быть больше одной минуты'
-            })
+        if cooking_time < 1:
+            raise serializers.ValidationError(
+                f'Время должно быть больше одной минуты. '
+                f'Текущее значение: {cooking_time}.'
+            )
         return data
 
     @staticmethod
@@ -247,12 +250,10 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        if 'ingredients' in validated_data:
-            ingredients = validated_data.pop('ingredients')
-            instance.ingredients.clear()
-            self.ingredients_create(ingredients, instance)
-        if 'tags' in validated_data:
-            instance.tags.set(validated_data.pop('tags'))
+        ingredients = validated_data.pop('ingredients')
+        instance.ingredients.clear()
+        self.ingredients_create(ingredients, instance)
+        instance.tags.set(validated_data.pop('tags'))
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
@@ -276,7 +277,7 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         model = self.Meta.model
         if model.objects.filter(
-                user=data['user'], recipe=data['recipe']
+            user=data['user'], recipe=data['recipe']
         ).exists():
             raise serializers.ValidationError(
                 f'Рецепт уже добавлен в {model._meta.verbose_name}')

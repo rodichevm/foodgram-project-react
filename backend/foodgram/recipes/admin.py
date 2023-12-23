@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
+from django.db.models import Min, Max
 from django.utils.safestring import mark_safe
 
 from recipes.models import (
@@ -15,18 +16,25 @@ class CookingTimeFilter(SimpleListFilter):
     parameter_name = 'cooking_time'
 
     def lookups(self, request, model_admin):
-        thresholds = [
-            (0, 15, 'Быстрые (до 15 мин.)'),
-            (16, 45, 'Средние (15 - 45 мин.)'),
-            (46, 10**10, 'Долгие (более 45 мин.)')
-        ]
         lookup_choices = []
+        thresholds = [0, 15, 45, 10**10]
 
-        for low, high, label in thresholds:
+        for i in range(len(thresholds) - 1):
+            low, high = thresholds[i], thresholds[i + 1]
+            if low in range(0, 15):
+                label = 'Быстрые'
+            elif low in range(15, 45):
+                label = 'Средние'
+            elif low in range(45, 10**10):
+                label = 'Долгие'
+            else:
+                label = 'Неизвестно'
+
             recipe_count = model_admin.get_queryset(request).filter(
                 cooking_time__range=(low, high)).count()
+
             lookup_choices.append(
-                (f'{low}-{high}', f'{label} ({recipe_count} рецептов)'))
+                (f'{low + 1}-{high}', f'{label} ({recipe_count} рецептов)'))
 
         return lookup_choices
 
@@ -83,10 +91,11 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ('name', 'slug')
     empty_value_display = '-пусто-'
 
+    @mark_safe
     @admin.display(description='Цвет HEX')
-    def display_color(self, obj):
-        return mark_safe(
-            f'<div style="background-color: {obj.color}; width: '
+    def display_color(self, tag):
+        return (
+            f'<div style="background-color: {tag.color}; width: '
             f'30px; height: 30px;"></div>'
         )
 
@@ -130,9 +139,10 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_favorites(self, recipe):
         return recipe.favorites.count()
 
+    @mark_safe
     @admin.display(description='Теги')
     def get_tags(self, recipe):
-        return mark_safe(
+        return (
             '<br>'.join(str(tag) for tag in recipe.tags.all())
         )
 
