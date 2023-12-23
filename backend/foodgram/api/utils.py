@@ -16,13 +16,11 @@ def generate_shopping_cart_message(shopping_cart_list):
         '',
         'РЕЦЕПТЫ:',
     ]
-    added_recipes = set()
-    for index, item in enumerate(shopping_cart_list):
-        if item["recipe__name"] not in added_recipes:
-            result_lines.append(
-                f'{index + 1}.'
-                f'{item["recipe__name"].capitalize()}'
-            )
-            added_recipes.add(item["recipe__name"])
-
+    for index, item in enumerate(
+            set(item["recipe__name"] for item in shopping_cart_list)
+    ):
+        result_lines.append(
+            f'{index + 1}.'
+            f'{item.capitalize()}'
+        )
     return '\n'.join(result_lines)

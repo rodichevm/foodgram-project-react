@@ -118,7 +118,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         return FileResponse(
             generate_shopping_cart_message(
-                Recipe.create_shopping_cart_list(self.request.user)),
+                Recipe.create_shopping_cart_list(self.request.user)
+            ),
             content_type='text/plain'
         )
 
