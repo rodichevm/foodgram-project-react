@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from django.http import HttpResponse
+from django.http import FileResponse
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -17,7 +17,7 @@ from api.serializers import (
     ShoppingCartSerializer, SubscribesSerializer,
     TagSerializer, UserSerializer
 )
-from api.utils import send_message
+from api.utils import generate_shopping_cart_message
 from recipes.models import (
     Favorite, Follow,
     Ingredient, Recipe,
@@ -116,15 +116,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
-        response = HttpResponse(
-            send_message(
-                Recipe.add_shopping_cart(request)
-            ),
+        return FileResponse(
+            generate_shopping_cart_message(Recipe.create_shopping_cart_list(self.request.user)),
             content_type='text/plain'
         )
-        response[
-            'Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
-        return response
 
     @action(
         detail=True,
