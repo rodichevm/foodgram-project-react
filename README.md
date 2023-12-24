@@ -10,7 +10,7 @@
 
 **Ссылка на админ-зону проекта http://foodgramers.ddns.net/admin**
 
-**Ссылка на API документацию проекта http://foodgramers.ddns.net/api/docs**
+**Ссылка на API документацию проекта http://foodgramers.ddns.net/api/docs/**
 
 
 
