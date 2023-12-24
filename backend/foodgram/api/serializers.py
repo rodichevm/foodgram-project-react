@@ -187,18 +187,14 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             if not model.objects.filter(id=item_id).exists()
         ]
         if invalid_items:
-            invalid_items_str = ', '.join(map(str, invalid_items))
             raise serializers.ValidationError(
                 f'Несуществующие элементы для модели '
-                f'{model._meta.verbose_name}: {invalid_items_str}'
+                f'{model._meta.verbose_name}: {invalid_items}'
             )
-        duplicate_items = ', '.join(
-            map(
-                str,
-                {item_id for item_id in items if items.count(item_id) > 1}
-            )
-        )
-        if len(items) != len(set(items)):
+        duplicate_items = {
+            item_id for item_id in items if items.count(item_id) > 1
+        }
+        if duplicate_items:
             raise serializers.ValidationError(
                 f'Повторяющиеся элементы для модели '
                 f'{model._meta.verbose_name}: {duplicate_items}'
@@ -207,7 +203,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         tags = data.get('tags')
         ingredients = data.get('ingredients')
-        cooking_time = data.get('cooking_time')
 
         self.validate_repeat_existence([tag.id for tag in tags], Tag)
         self.validate_repeat_existence(
@@ -218,11 +213,11 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             item['id'] for item in ingredients if item['amount'] < 1
         ]
         if incorrect_ingredients:
-            invalid_items_str = ', '.join(map(str, incorrect_ingredients))
             raise serializers.ValidationError(
-                f'Количество у продуктов: {invalid_items_str} '
+                f'Количество у продуктов: {incorrect_ingredients} '
                 f'должно быть не менее 1'
             )
+        cooking_time = data.get('cooking_time')
         if cooking_time < 1:
             raise serializers.ValidationError(
                 f'Время должно быть больше одной минуты. '
