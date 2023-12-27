@@ -1,14 +1,23 @@
 import datetime
+from django.db.models import Sum
+
+from recipes.models import IngredientAmount
 
 
 def generate_shopping_cart_message(shopping_cart_list):
-    ingredient_counts = {}
-    for item in shopping_cart_list:
-        ingredient_key = (
-            item["ingredient__name"], item["ingredient__measurement_unit"]
-        )
-        ingredient_counts[ingredient_key] = ingredient_counts.get(
-            ingredient_key, 0) + item["amount"]
+    ingredient_names = set(
+        item['ingredient__name'] for item in shopping_cart_list)
+    ingredient_amounts = (
+        IngredientAmount.objects
+        .filter(ingredient__name__in=ingredient_names)
+        .values('ingredient__name', 'ingredient__measurement_unit')
+        .annotate(total_sum=Sum('amount'))
+    )
+    ingredients = {
+        (item["ingredient__name"],
+         item["ingredient__measurement_unit"]): item['total_sum']
+        for item in ingredient_amounts
+    }
     return '\n'.join(
         [
             f'Дата: {datetime.date.today().isoformat()}',
@@ -20,7 +29,7 @@ def generate_shopping_cart_message(shopping_cart_list):
                 f' {measurement_unit}'
                 f' - {name.capitalize()}'
                 for index, ((name, measurement_unit), amount) in enumerate(
-                    ingredient_counts.items()
+                    ingredients.items()
                 )
             ],
             '',
